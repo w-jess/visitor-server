@@ -55,30 +55,31 @@ public class AdminUserFacadeImpl implements AdminUserFacade {
 			return Result.buildErrorResult("密码不正确");
 		}
 		AdminSessionDTO sessionDTO = BeanConvertorUtils.map(user, AdminSessionDTO.class);
+		sessionDTO.setAdminId(user.getAdminUserId());
+		sessionDTO.setServerName("visitor");
 		String token = tokenManager.buildAdminToken(sessionDTO);
-		LoginBackBO result = new LoginBackBO().setToken(token)
-				.setAdminName(user.getAdminName()).setIsSuper(user.getIsSuper());
+		LoginBackBO result = new LoginBackBO().setToken(token).setAdminName(user.getAdminName()).setIsSuper(user.getIsSuper());
 		log.info("用户登录接口返回结果为:{}", JSONObject.toJSONString(result));
 		return Result.buildSuccessResult(result);
 	}
 
 	@Override
 	public Result logout(Long adminId) {
-		String userKey = TokenRedisConstant.ADMIN_SESSION_PREFIX + adminId;
+		String userKey = TokenRedisConstant.ADMIN_SESSION_PREFIX + "visitor:" + adminId;
 		redisUtil.del(userKey);
 		return Result.buildSuccessResult();
 	}
 
 	@Override
 	public Result updatePwd(String emplNo, String oldPassword, String newPassword) {
-		AdminUserPO user = adminUserService.getById(emplNo);
+		AdminUserPO user = adminUserService.getUserByEmplNo(emplNo);
 		oldPassword = DigestUtils.md5DigestAsHex((emplNo + oldPassword).getBytes());
 		if (!oldPassword.equals(user.getPassword())) {
 			return Result.buildErrorResult("原密码不正确");
 		}
 		String password = DigestUtils.md5DigestAsHex((emplNo + newPassword).getBytes());
 		adminUserService.updatePwd(user.getAdminUserId(), password);
-		String userKey = TokenRedisConstant.ADMIN_SESSION_PREFIX + user.getAdminUserId();
+		String userKey = TokenRedisConstant.ADMIN_SESSION_PREFIX + "visitor:" + user.getAdminUserId();
 		redisUtil.del(userKey);
 		return Result.buildSuccessResult();
 	}
