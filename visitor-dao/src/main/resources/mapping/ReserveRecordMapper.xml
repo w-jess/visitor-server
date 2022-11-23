@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cf.visitor.dao.mapper.ReserveRecordMapper">
+
+	<resultMap id="reserveRecordMap" type="com.cf.visitor.dao.po.ReserveRecordPO">
+		<result column="admin_notes" property="adminNotes"/>
+		<result column="create_tm" property="createTm"/>
+		<result column="dep_name" property="depName"/>
+		<result column="dep_tel" property="depTel"/>
+		<result column="department" property="department"/>
+		<result column="id_no" property="idNo"/>
+		<result column="name" property="name"/>
+		<result column="reason" property="reason"/>
+		<result column="rec_business" property="recBusiness"/>
+		<result column="rec_desc" property="recDesc"/>
+		<result column="rec_number" property="recNumber"/>
+		<result column="rec_welcome" property="recWelcome"/>
+		<result column="reserve_date" property="reserveDate"/>
+		<result column="reserve_record_id" property="reserveRecordId"/>
+		<result column="reserve_time" property="reserveTime"/>
+		<result column="sex" property="sex"/>
+		<result column="speak_need" property="speakNeed"/>
+		<result column="speaker_name" property="speakerName"/>
+		<result column="special_req" property="specialReq"/>
+		<result column="state" property="state"/>
+		<result column="tel" property="tel"/>
+		<result column="type" property="type"/>
+		<result column="update_tm" property="updateTm"/>
+		<result column="user_id" property="userId"/>
+	</resultMap>
+</mapper>
+

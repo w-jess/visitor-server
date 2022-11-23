@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cf.visitor.dao.mapper.AdminOptLogMapper">
+
+	<resultMap id="adminOptLogMap" type="com.cf.visitor.dao.po.AdminOptLogPO">
+		<result column="admin_name" property="adminName"/>
+		<result column="admin_opt_log_id" property="adminOptLogId"/>
+		<result column="admin_user_id" property="adminUserId"/>
+		<result column="create_at" property="createAt"/>
+		<result column="execute_time" property="executeTime"/>
+		<result column="ip" property="ip"/>
+		<result column="opt_title" property="optTitle"/>
+		<result column="params" property="params"/>
+		<result column="response" property="response"/>
+		<result column="update_at" property="updateAt"/>
+	</resultMap>
+</mapper>
+

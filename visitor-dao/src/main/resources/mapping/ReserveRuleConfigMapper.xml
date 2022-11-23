@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cf.visitor.dao.mapper.ReserveRuleConfigMapper">
+
+	<resultMap id="reserveRuleConfigMap" type="com.cf.visitor.dao.po.ReserveRuleConfigPO">
+		<result column="create_tm" property="createTm"/>
+		<result column="reserve_rule_config_id" property="reserveRuleConfigId"/>
+		<result column="rule_date" property="ruleDate"/>
+		<result column="rule_end_tm" property="ruleEndTm"/>
+		<result column="rule_number" property="ruleNumber"/>
+		<result column="rule_start_tm" property="ruleStartTm"/>
+		<result column="update_tm" property="updateTm"/>
+	</resultMap>
+</mapper>
+

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cf.visitor.dao.mapper.ReserveEvaluateMapper">
+
+	<resultMap id="reserveEvaluateMap" type="com.cf.visitor.dao.po.ReserveEvaluatePO">
+		<result column="create_tm" property="createTm"/>
+		<result column="evaluate_desc" property="evaluateDesc"/>
+		<result column="evaluate_rank" property="evaluateRank"/>
+		<result column="reserve_evaluate_id" property="reserveEvaluateId"/>
+		<result column="reserve_record_id" property="reserveRecordId"/>
+		<result column="update_tm" property="updateTm"/>
+		<result column="user_id" property="userId"/>
+	</resultMap>
+</mapper>
+
