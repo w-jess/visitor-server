@@ -1,13 +1,13 @@
 package com.cf.visitor.facade.enums;
 
-public enum UserStateEnum {
-	USER_IS_NORMAL(1, "正常"),
-	USER_IS_CLOSED(2, "封禁");
+public enum WhetherEnum {
+	YES(1, "是"),
+	NO(2, "否");
 
 	private Integer code;
 	private String name;
 
-	UserStateEnum(Integer code, String name) {
+	WhetherEnum(Integer code, String name) {
 		this.code = code;
 		this.name = name;
 	}

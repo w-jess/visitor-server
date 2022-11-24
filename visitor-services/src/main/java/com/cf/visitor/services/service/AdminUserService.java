@@ -19,7 +19,7 @@ public class AdminUserService extends ServiceImpl<AdminUserMapper, AdminUserPO> 
 
 	public AdminUserPO getUserByEmplNo(String emplNo) {
 		LambdaQueryWrapper<AdminUserPO> queryWrapper = new LambdaQueryWrapper<AdminUserPO>()
-				.eq(AdminUserPO::getEmplNo, emplNo).eq(AdminUserPO::getState, UserStateEnum.USER_IS_NORMAL.getIndex());
+				.eq(AdminUserPO::getEmplNo, emplNo).eq(AdminUserPO::getState, UserStateEnum.USER_IS_NORMAL.getCode());
 		return this.getOne(queryWrapper);
 	}
 

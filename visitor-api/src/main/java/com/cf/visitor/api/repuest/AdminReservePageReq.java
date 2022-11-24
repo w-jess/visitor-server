@@ -1,4 +1,4 @@
-package com.cf.visitor.facade.dto;
+package com.cf.visitor.api.repuest;
 
 import com.cf.support.result.PageRequest;
 import lombok.Data;
@@ -12,7 +12,7 @@ import java.util.Date;
  */
 @Data
 @Accessors(chain = true)
-public class AdminRecordPageDTO extends PageRequest {
+public class AdminReservePageReq extends PageRequest {
 	Integer type;
 
 	String name;

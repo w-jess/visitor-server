@@ -1,5 +1,7 @@
-package com.cf.visitor.facade.bo;
+package com.cf.visitor.api.response;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -11,19 +13,25 @@ import java.util.Date;
  */
 @Data
 @Accessors(chain = true)
-public class AdminRecordPageBO {
+@ApiModel(value = "")
+public class AdminReservePageResp {
 
-	private Date reserveDate;
-
-	private String reserveTime;
-
+	/**
+	 * 预约记录ID
+	 */
 	private Long reserveRecordId;
 
 	private Long userId;
 
+	@ApiModelProperty(value = "类型(1:个人,2:工业旅游,3:业务来访,4:参观交流,5:政务参观,6:其他)")
 	private Integer type;
 
+	@ApiModelProperty(value = "参观时间(2022-8-23 9:00-10:00）")
 	private String recTime;
+
+	private Date reserveDate;
+
+	private String reserveTime;
 
 	private String name;
 
@@ -53,6 +61,7 @@ public class AdminRecordPageBO {
 
 	private String reason;
 
+	@ApiModelProperty(value = "状态(1:未审核,2:已通过,3:已拒绝,4:已取消,5:已到达,6:已评价)")
 	private Integer state;
 
 	private Integer optState;
@@ -61,7 +70,9 @@ public class AdminRecordPageBO {
 
 	private String evaluateDesc;
 
-	private String speakerName; // 讲解人
+	@ApiModelProperty(value = "讲解人")
+	private String speakerName;
 
-	private String adminNotes; // 管理员备注
+	@ApiModelProperty(value = "管理员备注")
+	private String adminNotes;
 }
