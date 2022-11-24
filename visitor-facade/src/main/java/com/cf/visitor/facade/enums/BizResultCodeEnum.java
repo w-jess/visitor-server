@@ -27,7 +27,8 @@ public enum BizResultCodeEnum implements ResultCode {
 	FORMAT_ERROR(103002, "格式不正确"),
 	TIME_ERROR(103003, "预约时间不能早于当前时间"),
 	PERSONAL_TIME_ERROR(103004, "个人预约时间需从可预约时间中选择"),
-	RESERVE_LIMIT(103005, "每人每天最多预约1次");
+	RESERVE_LIMIT(103005, "每人每天最多预约1次"),
+	PERSONAL_TIME_NUMBER_FULL(103006, "当前时间段预约人数已满");
 
 	BizResultCodeEnum(int code, String msg) {
 		this.code = code;

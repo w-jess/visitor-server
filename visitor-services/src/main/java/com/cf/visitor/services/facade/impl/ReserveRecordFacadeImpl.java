@@ -27,7 +27,6 @@ import org.springframework.util.CollectionUtils;
 import javax.annotation.Resource;
 import java.util.*;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * @author whx
@@ -49,7 +48,7 @@ public class ReserveRecordFacadeImpl implements ReserveRecordFacade {
 			return PageUtils.emptyResponseList(recordPage);
 		}
 		List<AdminReservePageBO> recordPageBOS = BeanConvertorUtils.copyList(recordPage.getRecords(), AdminReservePageBO.class);
-		recordPageBOS.stream().forEach(item -> item.setRecTime(DateFormatUtils.format(item.getReserveDate(), "yyyy-MM-dd ") + item.getReserveTime()));
+		recordPageBOS.forEach(item -> item.setRecTime(DateFormatUtils.format(item.getReserveDate(), "yyyy-MM-dd ") + item.getReserveTime()));
 		return PageUtils.toResponseList(recordPage, recordPageBOS);
 	}
 
@@ -62,7 +61,7 @@ public class ReserveRecordFacadeImpl implements ReserveRecordFacade {
 		//时间校验
 		this.timeCheck(recordPO);
 		//每人每天预约1次限制
-		Long countRecordByState = reserveRecordService.countValidRecord(recordPO);
+		Long countRecordByState = reserveRecordService.countUserValidRecord(recordPO);
 		if (countRecordByState != 0) {
 			throw new BusinessException(BizResultCodeEnum.RESERVE_LIMIT);
 		}
@@ -151,11 +150,16 @@ public class ReserveRecordFacadeImpl implements ReserveRecordFacade {
 			if (CollectionUtils.isEmpty(configListByDate)) {
 				throw new BusinessException(BizResultCodeEnum.PERSONAL_TIME_ERROR);
 			}
-			List<String> timeList = configListByDate.stream().map(item -> item.getRuleStartTm() + "-" + item.getRuleEndTm()).collect(Collectors.toList());
-			if (!timeList.contains(param.getReserveTime())) {
-				throw new BusinessException(BizResultCodeEnum.PERSONAL_TIME_ERROR);
+			Integer ruleNumber = 0;
+			for (ReserveRuleConfigPO item : configListByDate) {
+				if ((item.getRuleStartTm() + "-" + item.getRuleEndTm()).equals(param.getReserveTime())) {
+					ruleNumber = item.getRuleNumber();
+				}
 			}
-			//TODO 人数限制
+			//人数校验，不能超过限制人数
+			if (ruleNumber == 0 || reserveRecordService.countValidRecordByTime(param) >= ruleNumber) {
+				throw new BusinessException(BizResultCodeEnum.PERSONAL_TIME_NUMBER_FULL);
+			}
 		}
 	}
 }

@@ -8,13 +8,13 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.cf.visitor.dao.po.ReserveRecordPO;
 import com.cf.visitor.dao.mapper.ReserveRecordMapper;
 import com.cf.visitor.facade.enums.StateEnum;
+import com.cf.visitor.facade.enums.TypeEnum;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * @author whx
@@ -27,6 +27,13 @@ public class ReserveRecordService extends ServiceImpl<ReserveRecordMapper, Reser
 	@Resource
 	private ReserveRecordMapper reserveRecordMapper;
 
+	/**
+	 * 按照条件获取预约记录并分页(名字模糊查询)
+	 *
+	 * @param page
+	 * @param param
+	 * @return
+	 */
 	public IPage getRecordPage(Page page, ReserveRecordPO param) {
 		LambdaQueryWrapper<ReserveRecordPO> queryWrapper = new LambdaQueryWrapper<ReserveRecordPO>()
 				.like(StringUtils.isNotEmpty(param.getName()), ReserveRecordPO::getName, param.getName())
@@ -39,16 +46,29 @@ public class ReserveRecordService extends ServiceImpl<ReserveRecordMapper, Reser
 	}
 
 	/**
-	 * 查询用户预约日期当天的有效订单
+	 * 查询用户预约日期当天的有效订单数
 	 *
 	 * @param param
 	 * @return
 	 */
-	public Long countValidRecord(ReserveRecordPO param) {
+	public Long countUserValidRecord(ReserveRecordPO param) {
 		LambdaQueryWrapper<ReserveRecordPO> queryWrapper = new LambdaQueryWrapper<ReserveRecordPO>()
 				.eq(ReserveRecordPO::getUserId, param.getUserId()).eq(ReserveRecordPO::getReserveDate, param.getReserveDate())
-				.notIn(ReserveRecordPO::getState, Arrays.asList(StateEnum.STATE_UN_REVIEW.getCode(), StateEnum.STATE_PASSED.getCode(),
+				.in(ReserveRecordPO::getState, Arrays.asList(StateEnum.STATE_UN_REVIEW.getCode(), StateEnum.STATE_PASSED.getCode(),
 						StateEnum.STATE_ARRIVED.getCode(), StateEnum.STATE_EVALUATED.getCode()));
+		return this.count(queryWrapper);
+	}
+
+	/**
+	 * 配置时间段内已预约人数
+	 *
+	 * @param param
+	 * @return
+	 */
+	public Long countValidRecordByTime(ReserveRecordPO param) {
+		LambdaQueryWrapper<ReserveRecordPO> queryWrapper = new LambdaQueryWrapper<ReserveRecordPO>().eq(ReserveRecordPO::getType, TypeEnum.TYPE_PERSONAL.getCode())
+				.eq(ReserveRecordPO::getReserveDate, param.getReserveDate()).eq(ReserveRecordPO::getReserveTime, param.getReserveTime())
+				.in(ReserveRecordPO::getState, Arrays.asList(StateEnum.STATE_UN_REVIEW.getCode(), StateEnum.STATE_PASSED.getCode()));
 		return this.count(queryWrapper);
 	}
 }
