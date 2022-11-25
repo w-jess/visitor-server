@@ -1,8 +1,13 @@
 package com.cf.visitor.facade.facade;
 
 import com.cf.support.result.PageResponse;
+import com.cf.support.result.Result;
 import com.cf.visitor.facade.bo.ReserveRecordBO;
+import com.cf.visitor.facade.dto.AdminConfigTimeDTO;
 import com.cf.visitor.facade.dto.AdminReservePageDTO;
+
+import java.util.Date;
+import java.util.List;
 
 /**
  * @author whx
@@ -25,5 +30,13 @@ public interface AdminReserveFacade {
 	 * @return
 	 */
 	ReserveRecordBO getRecordDetail(Long reserveRecordId);
+
+	/**
+	 * 批量保存时间配置
+	 *
+	 * @param param
+	 * @return
+	 */
+	Result saveRuleConfig(Date ruleDate, List<AdminConfigTimeDTO> param);
 
 }

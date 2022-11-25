@@ -3,24 +3,33 @@ package com.cf.visitor.services.facade.impl;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.cf.support.exception.BusinessException;
 import com.cf.support.result.PageResponse;
+import com.cf.support.result.Result;
 import com.cf.support.utils.BeanConvertorUtils;
 import com.cf.visitor.dao.po.ReserveEvaluatePO;
 import com.cf.visitor.dao.po.ReserveRecordPO;
+import com.cf.visitor.dao.po.ReserveRuleConfigPO;
 import com.cf.visitor.facade.bo.ReserveRecordBO;
+import com.cf.visitor.facade.dto.AdminConfigTimeDTO;
 import com.cf.visitor.facade.dto.AdminReservePageDTO;
 import com.cf.visitor.facade.enums.BizResultCodeEnum;
 import com.cf.visitor.facade.enums.StateEnum;
 import com.cf.visitor.facade.facade.AdminReserveFacade;
 import com.cf.visitor.services.service.ReserveEvaluateService;
 import com.cf.visitor.services.service.ReserveRecordService;
+import com.cf.visitor.services.service.ReserveRuleConfigService;
 import com.cf.visitor.services.utils.PageUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author whx
@@ -33,6 +42,8 @@ public class AdminReserveFacadeImpl implements AdminReserveFacade {
 	private ReserveRecordService reserveRecordService;
 	@Resource
 	private ReserveEvaluateService reserveEvaluateService;
+	@Resource
+	private ReserveRuleConfigService reserveRuleConfigService;
 
 	@Override
 	public PageResponse<ReserveRecordBO> getRecordPage(AdminReservePageDTO param) {
@@ -58,5 +69,43 @@ public class AdminReserveFacadeImpl implements AdminReserveFacade {
 			reserveRecordBO.setEvaluateRank(evaluatePO.getEvaluateRank()).setEvaluateDesc(evaluatePO.getEvaluateDesc());
 		}
 		return reserveRecordBO;
+	}
+
+	@Override
+	@Transactional
+	public Result saveRuleConfig(Date ruleDate, List<AdminConfigTimeDTO> param) {
+		List<ReserveRuleConfigPO> ruleConfigPOS = BeanConvertorUtils.copyList(param, ReserveRuleConfigPO.class);
+		List<ReserveRuleConfigPO> configPOList = reserveRuleConfigService.getListByDate(ruleDate);
+		List<ReserveRuleConfigPO> addList = new ArrayList<>();
+		String formatDate = DateFormatUtils.format(ruleDate, "yyyy-MM-ss");
+		if (!CollectionUtils.isEmpty(configPOList)) {
+			List<ReserveRuleConfigPO> updateList = new ArrayList<>();
+			List<Long> deleteList = configPOList.stream().map(ReserveRuleConfigPO::getReserveRuleConfigId).collect(Collectors.toList());
+			ruleConfigPOS.forEach(item -> {
+				item.setRuleDate(ruleDate);
+				Long reserveRuleConfigId = item.getReserveRuleConfigId();
+				if (ObjectUtils.isEmpty(reserveRuleConfigId)) {
+					addList.add(item);
+				} else {
+					updateList.add(item);
+					deleteList.remove(item);
+				}
+			});
+			//TODO
+			//addList.forEach(item -> {
+			//	if(!CFDateUtils.isNormal(formatDate + item.getRuleStartTm(),formatDate + item.getRuleEndTm(),CONFIG_TIME_ERROR)) {
+			//		throw new BusinessException(BizResultCodeEnum.);
+			//	}
+			//});
+			reserveRuleConfigService.updateBatchById(updateList);
+			reserveRuleConfigService.removeBatchByIds(deleteList);
+		} else {
+			ruleConfigPOS.forEach(item -> {
+				item.setRuleDate(ruleDate);
+				addList.add(item);
+			});
+		}
+		reserveRuleConfigService.saveBatch(addList);
+		return Result.buildSuccessResult();
 	}
 }

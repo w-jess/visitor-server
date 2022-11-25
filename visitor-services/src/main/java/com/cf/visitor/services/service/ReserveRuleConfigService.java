@@ -22,6 +22,12 @@ public class ReserveRuleConfigService extends ServiceImpl<ReserveRuleConfigMappe
 	@Resource
 	private ReserveRuleConfigMapper reserveRuleConfigMapper;
 
+	/**
+	 * 根据日期获取当天的配置记录
+	 *
+	 * @param date
+	 * @return
+	 */
 	public List<ReserveRuleConfigPO> getListByDate(Date date) {
 		return reserveRuleConfigMapper.selectList(new LambdaQueryWrapper<ReserveRuleConfigPO>().eq(ReserveRuleConfigPO::getRuleDate, date));
 	}

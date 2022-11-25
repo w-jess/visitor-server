@@ -29,7 +29,11 @@ public enum BizResultCodeEnum implements ResultCode {
 	PERSONAL_TIME_ERROR(103004, "个人预约时间需从可预约时间中选择"),
 	RESERVE_LIMIT(103005, "每人每天最多预约1次"),
 	PERSONAL_TIME_NUMBER_FULL(103006, "当前时间段预约人数已满"),
-	RESERVE_RECORD_IS_NULL(103007, "预约记录不存在");
+	RESERVE_RECORD_IS_NULL(103007, "预约记录不存在"),
+
+	/* 104 预约配置类 */
+	CONFIG_NUMBER_FULL(104001, "每天最多配置六个时间段"),
+	CONFIG_TIME_ERROR(104002, "新增时间段有重合，请修改后再保存");
 
 	BizResultCodeEnum(int code, String msg) {
 		this.code = code;
