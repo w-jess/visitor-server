@@ -5,6 +5,7 @@ import com.cf.support.exception.BusinessException;
 import com.cf.support.result.PageResponse;
 import com.cf.support.result.Result;
 import com.cf.support.utils.BeanConvertorUtils;
+import com.cf.support.utils.CFDateUtils;
 import com.cf.visitor.dao.po.ReserveEvaluatePO;
 import com.cf.visitor.dao.po.ReserveRecordPO;
 import com.cf.visitor.dao.po.ReserveRuleConfigPO;
@@ -26,9 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -77,9 +76,10 @@ public class AdminReserveFacadeImpl implements AdminReserveFacade {
 		List<ReserveRuleConfigPO> ruleConfigPOS = BeanConvertorUtils.copyList(param, ReserveRuleConfigPO.class);
 		List<ReserveRuleConfigPO> configPOList = reserveRuleConfigService.getListByDate(ruleDate);
 		List<ReserveRuleConfigPO> addList = new ArrayList<>();
-		String formatDate = DateFormatUtils.format(ruleDate, "yyyy-MM-ss");
 		if (!CollectionUtils.isEmpty(configPOList)) {
 			List<ReserveRuleConfigPO> updateList = new ArrayList<>();
+			List<Map<String, String>> originList = new ArrayList<>();
+			String formatDate = DateFormatUtils.format(ruleDate, "yyyy-MM-ss");
 			List<Long> deleteList = configPOList.stream().map(ReserveRuleConfigPO::getReserveRuleConfigId).collect(Collectors.toList());
 			ruleConfigPOS.forEach(item -> {
 				item.setRuleDate(ruleDate);
@@ -89,14 +89,18 @@ public class AdminReserveFacadeImpl implements AdminReserveFacade {
 				} else {
 					updateList.add(item);
 					deleteList.remove(item);
+					HashMap<String, String> originMap = new HashMap<>();
+					originMap.put("start", formatDate + item.getRuleStartTm());
+					originMap.put("end", formatDate + item.getRuleEndTm());
+					originList.add(originMap);
 				}
 			});
-			//TODO
-			//addList.forEach(item -> {
-			//	if(!CFDateUtils.isNormal(formatDate + item.getRuleStartTm(),formatDate + item.getRuleEndTm(),CONFIG_TIME_ERROR)) {
-			//		throw new BusinessException(BizResultCodeEnum.);
-			//	}
-			//});
+			//新增配置时间段重合校验
+			addList.forEach(item -> {
+				if (!CFDateUtils.isNormal(formatDate + item.getRuleStartTm(), formatDate + item.getRuleEndTm(), originList)) {
+					throw new BusinessException(BizResultCodeEnum.CONFIG_TIME_ERROR);
+				}
+			});
 			reserveRuleConfigService.updateBatchById(updateList);
 			reserveRuleConfigService.removeBatchByIds(deleteList);
 		} else {
