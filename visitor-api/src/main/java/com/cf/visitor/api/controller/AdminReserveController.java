@@ -1,14 +1,17 @@
 package com.cf.visitor.api.controller;
 
 import com.cf.support.authertication.AdminUserAuthentication;
+import com.cf.support.exception.BusinessException;
 import com.cf.support.result.PageResponse;
 import com.cf.support.result.Result;
 import com.cf.support.utils.BeanConvertorUtils;
 import com.cf.visitor.api.repuest.AdminReservePageReq;
-import com.cf.visitor.api.response.AdminReservePageResp;
-import com.cf.visitor.facade.bo.AdminReservePageBO;
+import com.cf.visitor.api.repuest.ReserveRecordIdReq;
+import com.cf.visitor.api.response.ReserveRecordResp;
+import com.cf.visitor.facade.bo.ReserveRecordBO;
 import com.cf.visitor.facade.dto.AdminReservePageDTO;
 import com.cf.visitor.facade.enums.BizResultCodeEnum;
+import com.cf.visitor.facade.facade.AdminReserveFacade;
 import com.cf.visitor.facade.facade.ReserveRecordFacade;
 import com.cf.visitor.services.utils.EnumUtils;
 import com.cf.visitor.services.utils.PageUtils;
@@ -32,11 +35,11 @@ import javax.annotation.Resource;
 @Api(tags = "后台预约管理相关")
 public class AdminReserveController {
 	@Resource
-	private ReserveRecordFacade reserveRecordFacade;
+	private AdminReserveFacade adminReserveFacade;
 
 	@PostMapping("/record")
 	@ApiOperation(value = "获取预约记录分页接口", notes = "获取预约记录分页接口")
-	public Result<PageResponse<AdminReservePageResp>> getRecordPage(@RequestBody AdminReservePageReq param) {
+	public Result<PageResponse<ReserveRecordResp>> getRecordPage(@RequestBody AdminReservePageReq param) {
 		//类型校验
 		if (ObjectUtils.isNotEmpty(param.getType()) && !EnumUtils.isInType(param.getType())) {
 			return Result.buildErrorResult(BizResultCodeEnum.PARAM_ERROR.getMsg());
@@ -45,10 +48,20 @@ public class AdminReserveController {
 		if (ObjectUtils.isNotEmpty(param.getState()) && !EnumUtils.isInState(param.getState())) {
 			return Result.buildErrorResult(BizResultCodeEnum.PARAM_ERROR.getMsg());
 		}
-		PageResponse<AdminReservePageBO> record = reserveRecordFacade.getRecordPage(BeanConvertorUtils.map(param, AdminReservePageDTO.class));
+		PageResponse<ReserveRecordBO> record = adminReserveFacade.getRecordPage(BeanConvertorUtils.map(param, AdminReservePageDTO.class));
 		if (record.getTotal() == 0) {
 			return PageUtils.emptyPageResult(record);
 		}
-		return PageUtils.pageResult(record, BeanConvertorUtils.copyList(record.getList(), AdminReservePageResp.class));
+		return PageUtils.pageResult(record, BeanConvertorUtils.copyList(record.getList(), ReserveRecordResp.class));
+	}
+
+	@PostMapping("/detail")
+	@ApiOperation(value = "获取预约记录详情接口", notes = "获取预约记录详情接口")
+	public Result<ReserveRecordResp> getRecordDetail(@RequestBody ReserveRecordIdReq param) {
+		Long reserveRecordId = param.getReserveRecordId();
+		if (ObjectUtils.isEmpty(reserveRecordId)) {
+			throw new BusinessException(BizResultCodeEnum.PARAM_NULL);
+		}
+		return Result.buildSuccessResult(BeanConvertorUtils.map(adminReserveFacade.getRecordDetail(reserveRecordId), ReserveRecordResp.class));
 	}
 }

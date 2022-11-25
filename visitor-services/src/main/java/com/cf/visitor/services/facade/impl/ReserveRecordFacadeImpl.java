@@ -1,21 +1,16 @@
 package com.cf.visitor.services.facade.impl;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.cf.support.exception.BusinessException;
-import com.cf.support.result.PageResponse;
 import com.cf.support.result.Result;
 import com.cf.support.utils.BeanConvertorUtils;
 import com.cf.support.utils.CFDateUtils;
 import com.cf.visitor.dao.po.ReserveRecordPO;
 import com.cf.visitor.dao.po.ReserveRuleConfigPO;
-import com.cf.visitor.facade.bo.AdminReservePageBO;
-import com.cf.visitor.facade.dto.AdminReservePageDTO;
 import com.cf.visitor.facade.dto.ReserveRecordDTO;
 import com.cf.visitor.facade.enums.*;
 import com.cf.visitor.facade.facade.ReserveRecordFacade;
 import com.cf.visitor.services.service.ReserveRecordService;
 import com.cf.visitor.services.service.ReserveRuleConfigService;
-import com.cf.visitor.services.utils.PageUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -40,17 +35,6 @@ public class ReserveRecordFacadeImpl implements ReserveRecordFacade {
 	private ReserveRecordService reserveRecordService;
 	@Resource
 	private ReserveRuleConfigService reserveRuleConfigService;
-
-	@Override
-	public PageResponse<AdminReservePageBO> getRecordPage(AdminReservePageDTO param) {
-		IPage recordPage = reserveRecordService.getRecordPage(PageUtils.toPage(param), BeanConvertorUtils.map(param, ReserveRecordPO.class));
-		if (recordPage.getTotal() == 0) {
-			return PageUtils.emptyResponseList(recordPage);
-		}
-		List<AdminReservePageBO> recordPageBOS = BeanConvertorUtils.copyList(recordPage.getRecords(), AdminReservePageBO.class);
-		recordPageBOS.forEach(item -> item.setRecTime(DateFormatUtils.format(item.getReserveDate(), "yyyy-MM-dd ") + item.getReserveTime()));
-		return PageUtils.toResponseList(recordPage, recordPageBOS);
-	}
 
 	@Override
 	@Transactional
