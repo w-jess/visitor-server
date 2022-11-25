@@ -12,7 +12,6 @@ import com.cf.visitor.facade.bo.ReserveRecordBO;
 import com.cf.visitor.facade.dto.AdminReservePageDTO;
 import com.cf.visitor.facade.enums.BizResultCodeEnum;
 import com.cf.visitor.facade.facade.AdminReserveFacade;
-import com.cf.visitor.facade.facade.ReserveRecordFacade;
 import com.cf.visitor.services.utils.EnumUtils;
 import com.cf.visitor.services.utils.PageUtils;
 import io.swagger.annotations.Api;
@@ -48,7 +47,10 @@ public class AdminReserveController {
 		if (ObjectUtils.isNotEmpty(param.getState()) && !EnumUtils.isInState(param.getState())) {
 			return Result.buildErrorResult(BizResultCodeEnum.PARAM_ERROR.getMsg());
 		}
-		PageResponse<ReserveRecordBO> record = adminReserveFacade.getRecordPage(BeanConvertorUtils.map(param, AdminReservePageDTO.class));
+		AdminReservePageDTO pageDTO = BeanConvertorUtils.map(param, AdminReservePageDTO.class);
+		pageDTO.setPageNo(param.getPageNo());
+		pageDTO.setPageSize(param.getPageSize());
+		PageResponse<ReserveRecordBO> record = adminReserveFacade.getRecordPage(pageDTO);
 		if (record.getTotal() == 0) {
 			return PageUtils.emptyPageResult(record);
 		}

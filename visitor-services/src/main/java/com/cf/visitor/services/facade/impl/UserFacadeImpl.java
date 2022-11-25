@@ -85,6 +85,7 @@ public class UserFacadeImpl implements UserFacade {
 			UserSessionDTO sessionDTO = new UserSessionDTO();
 			sessionDTO.setUserId(userId);
 			sessionDTO.setOpenId(openId);
+			sessionDTO.setServerName("visitor");
 			String token = tokenManager.buildUserToken(sessionDTO);
 			if (null == token) {
 				log.error("用户登录接口生成token错误,code={},userId={}", code, userId);

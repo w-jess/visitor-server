@@ -47,8 +47,8 @@ jwt:
   secret: 56ac34bd8e133f4e4344c8b784957aa6ffe6552dd92
 
 wechat:
-  appId: wx41dc8404dfb84860
-  secret: bd6b93a133e83519e70d8dd76c74ba54
+  appId: wx4498af249ea79ace
+  secret: 9dbfb5d85094033f4a810e042a59bcbb
 
 dingtalk:
   keyWord: visitor

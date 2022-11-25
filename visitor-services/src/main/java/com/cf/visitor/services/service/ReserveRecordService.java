@@ -36,12 +36,12 @@ public class ReserveRecordService extends ServiceImpl<ReserveRecordMapper, Reser
 	 */
 	public IPage getRecordPage(Page page, ReserveRecordPO param) {
 		LambdaQueryWrapper<ReserveRecordPO> queryWrapper = new LambdaQueryWrapper<ReserveRecordPO>()
-				.like(StringUtils.isNotEmpty(param.getName()), ReserveRecordPO::getName, param.getName())
-				.like(StringUtils.isNotEmpty(param.getDepName()), ReserveRecordPO::getDepName, param.getDepName())
+				.like(StringUtils.isNotBlank(param.getName()), ReserveRecordPO::getName, param.getName())
+				.like(StringUtils.isNotBlank(param.getDepName()), ReserveRecordPO::getDepName, param.getDepName())
 				.eq(ObjectUtils.isNotEmpty(param.getType()), ReserveRecordPO::getType, param.getType())
 				.eq(ObjectUtils.isNotEmpty(param.getState()), ReserveRecordPO::getState, param.getState())
 				.eq(ObjectUtils.isNotEmpty(param.getReserveDate()), ReserveRecordPO::getReserveDate, param.getReserveDate())
-				.orderByDesc(ReserveRecordPO::getReserveTime, ReserveRecordPO::getReserveRecordId);
+				.orderByDesc(ReserveRecordPO::getReserveDate, ReserveRecordPO::getReserveRecordId);
 		return reserveRecordMapper.selectPage(page, queryWrapper);
 	}
 
