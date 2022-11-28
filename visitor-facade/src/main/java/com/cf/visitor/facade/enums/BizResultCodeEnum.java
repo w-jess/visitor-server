@@ -33,7 +33,8 @@ public enum BizResultCodeEnum implements ResultCode {
 
 	/* 104 预约配置类 */
 	CONFIG_NUMBER_FULL(104001, "每天最多配置六个时间段"),
-	CONFIG_TIME_ERROR(104002, "新增时间段有重合，请修改后再保存");
+	CONFIG_TIME_ERROR(104002, "新增时间段有重合，请修改后再保存"),
+	CONFIG_TIME_LATER_ERROR(104003, "结束时间应晚于开始时间");
 
 	BizResultCodeEnum(int code, String msg) {
 		this.code = code;

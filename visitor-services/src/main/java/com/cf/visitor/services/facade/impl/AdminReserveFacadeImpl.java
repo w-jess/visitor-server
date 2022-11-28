@@ -18,13 +18,13 @@ import com.cf.visitor.facade.facade.AdminReserveFacade;
 import com.cf.visitor.services.service.ReserveEvaluateService;
 import com.cf.visitor.services.service.ReserveRecordService;
 import com.cf.visitor.services.service.ReserveRuleConfigService;
+import com.cf.visitor.services.utils.MapUtils;
 import com.cf.visitor.services.utils.PageUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -76,40 +76,54 @@ public class AdminReserveFacadeImpl implements AdminReserveFacade {
 		List<ReserveRuleConfigPO> ruleConfigPOS = BeanConvertorUtils.copyList(param, ReserveRuleConfigPO.class);
 		List<ReserveRuleConfigPO> configPOList = reserveRuleConfigService.getListByDate(ruleDate);
 		List<ReserveRuleConfigPO> addList = new ArrayList<>();
-		if (!CollectionUtils.isEmpty(configPOList)) {
-			List<ReserveRuleConfigPO> updateList = new ArrayList<>();
-			List<Map<String, String>> originList = new ArrayList<>();
-			String formatDate = DateFormatUtils.format(ruleDate, "yyyy-MM-ss");
-			List<Long> deleteList = configPOList.stream().map(ReserveRuleConfigPO::getReserveRuleConfigId).collect(Collectors.toList());
-			ruleConfigPOS.forEach(item -> {
-				item.setRuleDate(ruleDate);
-				Long reserveRuleConfigId = item.getReserveRuleConfigId();
-				if (ObjectUtils.isEmpty(reserveRuleConfigId)) {
-					addList.add(item);
-				} else {
-					updateList.add(item);
-					deleteList.remove(item);
-					HashMap<String, String> originMap = new HashMap<>();
-					originMap.put("start", formatDate + item.getRuleStartTm());
-					originMap.put("end", formatDate + item.getRuleEndTm());
-					originList.add(originMap);
-				}
-			});
-			//新增配置时间段重合校验
+		List<Map<String, String>> addMapList = new ArrayList<>();
+		//分别获得新增、更新、删除的列表
+		List<ReserveRuleConfigPO> updateList = new ArrayList<>();
+		List<Map<String, String>> originList = new ArrayList<>();
+		List<Long> deleteList = configPOList.stream().map(ReserveRuleConfigPO::getReserveRuleConfigId).collect(Collectors.toList());
+		ruleConfigPOS.forEach(item -> {
+			item.setRuleDate(ruleDate);
+			Long reserveRuleConfigId = item.getReserveRuleConfigId();
+			if (ObjectUtils.isEmpty(reserveRuleConfigId)) {
+				addList.add(item);
+				addMapList.add(MapUtils.setOriginMap(item));
+			} else if (deleteList.contains(reserveRuleConfigId)) {
+				updateList.add(item);
+				deleteList.remove(reserveRuleConfigId);
+				originList.add(MapUtils.setOriginMap(item));
+			}
+		});
+		//新增配置时间段 与原配置 重合校验
+		this.addListCheck(addList, originList, false);
+		reserveRuleConfigService.updateBatchById(updateList);
+		reserveRuleConfigService.removeBatchByIds(deleteList);
+		//新增配置时间段 之间 的重合校验
+		this.addListCheck(addList, addMapList, true);
+		reserveRuleConfigService.saveBatch(addList);
+		return Result.buildSuccessResult();
+	}
+
+	/**
+	 * 新增时间段重合校验
+	 *
+	 * @param addList
+	 * @param originList
+	 * @param type       true:之间 false:之前配置
+	 */
+	private void addListCheck(List<ReserveRuleConfigPO> addList, List<Map<String, String>> originList, Boolean type) {
+		if (type == true) {
 			addList.forEach(item -> {
-				if (!CFDateUtils.isNormal(formatDate + item.getRuleStartTm(), formatDate + item.getRuleEndTm(), originList)) {
+				originList.remove(MapUtils.setOriginMap(item));
+				if (!CFDateUtils.isNormal(item.getRuleStartTm(), item.getRuleEndTm(), originList)) {
 					throw new BusinessException(BizResultCodeEnum.CONFIG_TIME_ERROR);
 				}
 			});
-			reserveRuleConfigService.updateBatchById(updateList);
-			reserveRuleConfigService.removeBatchByIds(deleteList);
 		} else {
-			ruleConfigPOS.forEach(item -> {
-				item.setRuleDate(ruleDate);
-				addList.add(item);
+			addList.forEach(item -> {
+				if (!CFDateUtils.isNormal(item.getRuleStartTm(), item.getRuleEndTm(), originList)) {
+					throw new BusinessException(BizResultCodeEnum.CONFIG_TIME_ERROR);
+				}
 			});
 		}
-		reserveRuleConfigService.saveBatch(addList);
-		return Result.buildSuccessResult();
 	}
 }
