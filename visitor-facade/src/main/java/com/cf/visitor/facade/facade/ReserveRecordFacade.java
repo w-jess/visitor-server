@@ -1,8 +1,11 @@
 package com.cf.visitor.facade.facade;
 
+import com.cf.support.result.PageResponse;
 import com.cf.support.result.Result;
+import com.cf.visitor.facade.bo.ReserveRecordBO;
 import com.cf.visitor.facade.bo.ReserveValidDateBO;
 import com.cf.visitor.facade.dto.ReserveRecordDTO;
+import com.cf.visitor.facade.dto.ReserveRecordsDTO;
 
 import java.util.List;
 
@@ -22,4 +25,12 @@ public interface ReserveRecordFacade {
 	 * @return
 	 */
 	List<ReserveValidDateBO> getValidDate();
+
+	/**
+	 * 查看用户预约记录
+	 *
+	 * @param param
+	 * @return
+	 */
+	PageResponse<ReserveRecordBO> getUserRecords(ReserveRecordsDTO param);
 }

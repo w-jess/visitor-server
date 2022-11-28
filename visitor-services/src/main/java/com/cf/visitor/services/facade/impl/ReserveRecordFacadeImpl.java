@@ -1,18 +1,23 @@
 package com.cf.visitor.services.facade.impl;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.cf.support.exception.BusinessException;
+import com.cf.support.result.PageResponse;
 import com.cf.support.result.Result;
 import com.cf.support.utils.BeanConvertorUtils;
 import com.cf.support.utils.CFDateUtils;
 import com.cf.visitor.dao.po.ReserveRecordPO;
 import com.cf.visitor.dao.po.ReserveRuleConfigPO;
+import com.cf.visitor.facade.bo.ReserveRecordBO;
 import com.cf.visitor.facade.bo.ReserveValidDateBO;
 import com.cf.visitor.facade.bo.ReserveValidTimeBO;
 import com.cf.visitor.facade.dto.ReserveRecordDTO;
+import com.cf.visitor.facade.dto.ReserveRecordsDTO;
 import com.cf.visitor.facade.enums.*;
 import com.cf.visitor.facade.facade.ReserveRecordFacade;
 import com.cf.visitor.services.service.ReserveRecordService;
 import com.cf.visitor.services.service.ReserveRuleConfigService;
+import com.cf.visitor.services.utils.PageUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -47,7 +52,7 @@ public class ReserveRecordFacadeImpl implements ReserveRecordFacade {
 		this.commitCheck(recordPO);
 		//时间校验
 		this.timeCheck(recordPO);
-		//每人每天预约1次限制
+		//每人每天限制预约1次
 		Long countRecordByState = reserveRecordService.countUserValidRecord(recordPO);
 		if (countRecordByState != 0) {
 			throw new BusinessException(BizResultCodeEnum.RESERVE_LIMIT);
@@ -153,6 +158,7 @@ public class ReserveRecordFacadeImpl implements ReserveRecordFacade {
 	public List<ReserveValidDateBO> getValidDate() {
 		List<ReserveRuleConfigPO> validDatePOS = reserveRuleConfigService.getValidDate();
 		Map<Date, List<ReserveValidTimeBO>> dateListMap = new HashMap<>();
+		//按日期组装列表
 		validDatePOS.forEach(item -> {
 			Date ruleDate = item.getRuleDate();
 			String text = item.getRuleStartTm() + "-" + item.getRuleEndTm();
@@ -166,10 +172,41 @@ public class ReserveRecordFacadeImpl implements ReserveRecordFacade {
 		List<Date> dateList = validDatePOS.stream().map(ReserveRuleConfigPO::getRuleDate).distinct().collect(Collectors.toList());
 		List<ReserveValidDateBO> validDateBOList = new ArrayList<>();
 		dateList.forEach(ruleDate -> {
-			ReserveValidDateBO validDateBO = new ReserveValidDateBO().setValue(ruleDate)
-					.setText(DateFormatUtils.format(ruleDate, "yyyy-MM-dd")).setChildren(dateListMap.get(ruleDate));
-			validDateBOList.add(validDateBO);
+			validDateBOList.add(new ReserveValidDateBO().setValue(ruleDate)
+					.setText(DateFormatUtils.format(ruleDate, "yyyy-MM-dd")).setChildren(dateListMap.get(ruleDate)));
 		});
 		return validDateBOList;
+	}
+
+	@Override
+	public PageResponse<ReserveRecordBO> getUserRecords(ReserveRecordsDTO param) {
+		IPage recordPage = reserveRecordService.getRecordPageByUserId(PageUtils.toPage(param), BeanConvertorUtils.map(param, ReserveRecordPO.class));
+		if (recordPage.getTotal() == 0) {
+			return PageUtils.emptyResponseList(recordPage);
+		}
+		List<ReserveRecordBO> recordPageBOS = BeanConvertorUtils.copyList(recordPage.getRecords(), ReserveRecordBO.class);
+		recordPageBOS.forEach(item -> {
+			String formatDate = DateFormatUtils.format(item.getReserveDate(), "yyyy-MM-dd");
+			item.setRecTime(formatDate + " " + item.getReserveTime());
+			Integer optState = 0;
+			if (StateEnum.STATE_PASSED.getCode().equals(item.getState())) {
+				String startTime = CFDateUtils.formatDate(formatDate + item.getReserveTime().split("-")[0] + ":00");
+				String endTime = CFDateUtils.formatDate(formatDate + item.getReserveTime().split("-")[1] + ":00");
+				String currentTime = CFDateUtils.formatDate(CFDateUtils.getCurrentTime());
+				if (currentTime.compareTo(startTime) <= 0) {                //开始时间之前可取消
+					optState = OptStateEnum.STATE_TO_BE_CANCELLED.getCode();
+				} else if (currentTime.compareTo(endTime) >= 0) {            //结束时间之后可评价
+					optState = OptStateEnum.STATE_TO_BE_EVALUATED.getCode();
+				} else {                                                    //预约时间段之内可已到达
+					optState = OptStateEnum.STATE_ARRIVED.getCode();
+				}
+			} else if (StateEnum.STATE_UN_REVIEW.getCode().equals(item.getState())) {
+				optState = OptStateEnum.STATE_TO_BE_CANCELLED.getCode();
+			} else if (StateEnum.STATE_ARRIVED.getCode().equals(item.getState())) {
+				optState = OptStateEnum.STATE_TO_BE_EVALUATED.getCode();
+			}
+			item.setOptState(optState);
+		});
+		return PageUtils.toResponseList(recordPage, recordPageBOS);
 	}
 }

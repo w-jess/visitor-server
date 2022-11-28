@@ -71,5 +71,19 @@ public class ReserveRecordService extends ServiceImpl<ReserveRecordMapper, Reser
 				.in(ReserveRecordPO::getState, Arrays.asList(StateEnum.STATE_UN_REVIEW.getCode(), StateEnum.STATE_PASSED.getCode()));
 		return this.count(queryWrapper);
 	}
+
+	/**
+	 * 获取该用户的预约记录
+	 *
+	 * @param page
+	 * @param param
+	 * @return
+	 */
+	public IPage getRecordPageByUserId(Page page, ReserveRecordPO param) {
+		LambdaQueryWrapper<ReserveRecordPO> queryWrapper = new LambdaQueryWrapper<ReserveRecordPO>()
+				.eq(ReserveRecordPO::getUserId, param.getUserId())
+				.orderByDesc(ReserveRecordPO::getReserveDate, ReserveRecordPO::getReserveRecordId);
+		return reserveRecordMapper.selectPage(page, queryWrapper);
+	}
 }
 
