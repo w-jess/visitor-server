@@ -31,5 +31,14 @@ public class ReserveRuleConfigService extends ServiceImpl<ReserveRuleConfigMappe
 	public List<ReserveRuleConfigPO> getListByDate(Date date) {
 		return reserveRuleConfigMapper.selectList(new LambdaQueryWrapper<ReserveRuleConfigPO>().eq(ReserveRuleConfigPO::getRuleDate, date));
 	}
+
+	/**
+	 * 查询今天及以后的配置记录
+	 *
+	 * @return
+	 */
+	public List<ReserveRuleConfigPO> getValidDate() {
+		return reserveRuleConfigMapper.selectList(new LambdaQueryWrapper<ReserveRuleConfigPO>().apply("DATEDIFF(rule_date, NOW()) >= 0"));
+	}
 }
 

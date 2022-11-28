@@ -6,6 +6,8 @@ import com.cf.support.utils.BeanConvertorUtils;
 import com.cf.support.utils.CFDateUtils;
 import com.cf.visitor.dao.po.ReserveRecordPO;
 import com.cf.visitor.dao.po.ReserveRuleConfigPO;
+import com.cf.visitor.facade.bo.ReserveValidDateBO;
+import com.cf.visitor.facade.bo.ReserveValidTimeBO;
 import com.cf.visitor.facade.dto.ReserveRecordDTO;
 import com.cf.visitor.facade.enums.*;
 import com.cf.visitor.facade.facade.ReserveRecordFacade;
@@ -22,6 +24,7 @@ import org.springframework.util.CollectionUtils;
 import javax.annotation.Resource;
 import java.util.*;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * @author whx
@@ -85,8 +88,7 @@ public class ReserveRecordFacadeImpl implements ReserveRecordFacade {
 			if (ObjectUtils.isEmpty(param.getTel()) || ObjectUtils.isEmpty(param.getSex()) || StringUtils.isBlank(param.getIdNo())) {
 				throw new BusinessException(BizResultCodeEnum.PARAM_NULL);
 			}
-			Pattern idNoPattern = Pattern.compile("(^[1-9]\\\\d{5}(18|19|20)\\\\d{2}((0[1-9])|(10|11|12))(([0-2][1-9])|10|20|30|31)\\\\d{3}[0-9Xx]$)|\" +\n" +
-					"\t\t\t\t\"(^[1-9]\\\\d{5}\\\\d{2}((0[1-9])|(10|11|12))(([0-2][1-9])|10|20|30|31)\\\\d{3}$)");
+			Pattern idNoPattern = Pattern.compile("^[1-9]\\d{5}(18|19|([23]\\d))\\d{2}((0[1-9])|(10|11|12))(([0-2][1-9])|10|20|30|31)\\d{3}[0-9Xx]$");
 			if (!idNoPattern.matcher(param.getIdNo()).matches() || !Arrays.asList(SexEnum.MAN.getCode(), SexEnum.WOMAN.getCode()).contains(param.getSex())) {
 				throw new BusinessException(BizResultCodeEnum.FORMAT_ERROR);         //身份证格式校验,性别校验
 			}
@@ -111,7 +113,7 @@ public class ReserveRecordFacadeImpl implements ReserveRecordFacade {
 				throw new BusinessException(BizResultCodeEnum.PARAM_NULL);
 			}
 		} else {
-			//未知类型
+			//异常情况
 			throw new BusinessException(BizResultCodeEnum.PARAM_ERROR);
 		}
 	}
@@ -121,11 +123,11 @@ public class ReserveRecordFacadeImpl implements ReserveRecordFacade {
 	 *
 	 * @param param
 	 */
-	public void timeCheck(ReserveRecordPO param) {
+	private void timeCheck(ReserveRecordPO param) {
 		Date reserveDate = param.getReserveDate();
 		String startTime = CFDateUtils.formatDate(DateFormatUtils.format(reserveDate, "yyyy-MM-dd") + param.getReserveTime().split("-")[0] + ":00");
 		//预约时间不能早于现在
-		if (CFDateUtils.formatDate(CFDateUtils.getCurrentTime()).compareTo(startTime) >= 0) {
+		if (CFDateUtils.formatDate(CFDateUtils.getCurrentTime()).compareTo(startTime) <= 0) {
 			throw new BusinessException(BizResultCodeEnum.TIME_ERROR);
 		}
 		//个人预约时间须在配置时间中选择
@@ -145,5 +147,29 @@ public class ReserveRecordFacadeImpl implements ReserveRecordFacade {
 				throw new BusinessException(BizResultCodeEnum.PERSONAL_TIME_NUMBER_FULL);
 			}
 		}
+	}
+
+	@Override
+	public List<ReserveValidDateBO> getValidDate() {
+		List<ReserveRuleConfigPO> validDatePOS = reserveRuleConfigService.getValidDate();
+		Map<Date, List<ReserveValidTimeBO>> dateListMap = new HashMap<>();
+		validDatePOS.forEach(item -> {
+			Date ruleDate = item.getRuleDate();
+			String text = item.getRuleStartTm() + "-" + item.getRuleEndTm();
+			List<ReserveValidTimeBO> timeBOList = new ArrayList<>();
+			if (dateListMap.containsKey(ruleDate)) {
+				timeBOList = dateListMap.get(ruleDate);
+			}
+			timeBOList.add(new ReserveValidTimeBO().setText(text).setValue(DateFormatUtils.format(ruleDate, "yyyy-MM-dd") + " " + text));
+			dateListMap.put(ruleDate, timeBOList);
+		});
+		List<Date> dateList = validDatePOS.stream().map(ReserveRuleConfigPO::getRuleDate).distinct().collect(Collectors.toList());
+		List<ReserveValidDateBO> validDateBOList = new ArrayList<>();
+		dateList.forEach(ruleDate -> {
+			ReserveValidDateBO validDateBO = new ReserveValidDateBO().setValue(ruleDate)
+					.setText(DateFormatUtils.format(ruleDate, "yyyy-MM-dd")).setChildren(dateListMap.get(ruleDate));
+			validDateBOList.add(validDateBO);
+		});
+		return validDateBOList;
 	}
 }

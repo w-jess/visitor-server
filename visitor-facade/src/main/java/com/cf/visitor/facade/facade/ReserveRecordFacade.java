@@ -1,7 +1,10 @@
 package com.cf.visitor.facade.facade;
 
 import com.cf.support.result.Result;
+import com.cf.visitor.facade.bo.ReserveValidDateBO;
 import com.cf.visitor.facade.dto.ReserveRecordDTO;
+
+import java.util.List;
 
 public interface ReserveRecordFacade {
 
@@ -12,4 +15,11 @@ public interface ReserveRecordFacade {
 	 * @return
 	 */
 	Result reserveCommit(ReserveRecordDTO param);
+
+	/**
+	 * 获取个人预约可选择日期
+	 *
+	 * @return
+	 */
+	List<ReserveValidDateBO> getValidDate();
 }

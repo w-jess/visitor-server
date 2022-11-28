@@ -6,6 +6,7 @@ import com.cf.support.authertication.token.dto.UserSessionDTO;
 import com.cf.support.result.Result;
 import com.cf.support.utils.BeanConvertorUtils;
 import com.cf.visitor.api.repuest.ReserveRecordReq;
+import com.cf.visitor.api.response.ReserveValidDateResp;
 import com.cf.visitor.facade.dto.ReserveRecordDTO;
 import com.cf.visitor.facade.facade.ReserveRecordFacade;
 import io.swagger.annotations.Api;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * @author whx
@@ -42,5 +44,11 @@ public class ReserveController {
 		ReserveRecordDTO reserveRecordDTO = BeanConvertorUtils.map(param, ReserveRecordDTO.class);
 		reserveRecordDTO.setUserId(getUser().getUserId());
 		return reserveRecordFacade.reserveCommit(reserveRecordDTO);
+	}
+
+	@PostMapping("/select/date")
+	@ApiOperation(value = "获取预约可选择日期接口", notes = "获取预约可选择日期接口")
+	public Result<List<ReserveValidDateResp>> getValidDate() {
+		return Result.buildSuccessResult(BeanConvertorUtils.copyList(reserveRecordFacade.getValidDate(), ReserveValidDateResp.class));
 	}
 }
